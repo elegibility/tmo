@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Thank You</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            color: #fff;
+            text-align: center;
+            padding-top: 100px;
+        }
+        h1 {
+            color: #FF9800;
+            margin-bottom: 15px;
+        }
+        #availabilityStatus {
+            font-size: 36px;
+            color: #66BB6A;
+            animation: fadeIn 1s ease-in-out;
+        }
+        #loading {
+            font-size: 24px;
+            color: #FFEB3B;
+            animation: blink 2s infinite;
+        }
+        .fetch-data {
+            font-size: 48px;
+            font-weight: bold;
+            color: #FFEB3B;
+            animation: none; /* Remove blinking animation for fetch data */
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(-10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Do Not Refresh the Page,Please Wait!</h1>
+    <p>Your Availability Status:</p>
+    <p><span id="loading">Loading...</span><br><span class="fetch-data" id="availabilityStatus"></span></p>
+
+    <script>
+        const loadingText = document.getElementById("loading");
+        const statusSpan = document.getElementById("availabilityStatus");
+        const loadingMessages = [
+            "Checking your Area Coverage",
+            "Checking your 5G Strength",
+            "Checking your Nearest Tower",
+            "Almost Done"
+        ];
+        let currentIndex = 0;
+        let blinkCount = 0;
+        let blinkInterval;
+
+        function startBlinking() {
+            loadingText.style.display = "inline";
+            loadingText.textContent = loadingMessages[currentIndex];
+            blinkCount++;
+
+            if (blinkCount === 6 || currentIndex === loadingMessages.length - 1) {
+                clearInterval(blinkInterval);
+
+                if (currentIndex === loadingMessages.length - 1) {
+                    fetchAvailabilityStatus();
+                } else {
+                    currentIndex = (currentIndex + 1) % loadingMessages.length;
+                    blinkCount = 0;
+                    blinkInterval = setInterval(startBlinking, 2000); // 2 seconds
+                }
+            }
+        }
+
+        blinkInterval = setInterval(startBlinking, 2000); // 2 seconds
+
+        function fetchAvailabilityStatus() {
+            loadingText.style.display = "none"; // Hide loading text
+
+            fetch('https://script.google.com/macros/s/AKfycbx_8CG9uzrBmoLODp3T7bJ3v5eqXcsi6Gi4bKc2rYIXa8K-CoBsdm_kVkxpXSmQVJDs/exec?streetAddress={streetAddress}&zipcode={zipcode}')
+                .then(response => response.text())
+                .then(data => {
+                    statusSpan.textContent = data;
+                })
+                .catch(error => {
+                    console.error('Error fetching availability status:', error);
+                    statusSpan.textContent = "Error fetching availability.";
+                });
+        }
+
+        // Stop blinking and fetch availability status after 27 seconds
+        setTimeout(() => {
+            clearInterval(blinkInterval);
+            fetchAvailabilityStatus();
+        }, 30000); // 27 seconds in milliseconds
+    </script>
+</body>
+</html>
